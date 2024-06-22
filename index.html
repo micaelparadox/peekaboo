@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Github Dating feito com ❤️ por Micael Santana</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @keyframes sparkle {
+            0% { left: 0; opacity: 1; }
+            50% { left: 50%; opacity: 0.5; }
+            100% { left: 100%; opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            50% { transform: translateX(4px); }
+            75% { transform: translateX(-4px); }
+        }
+
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        h1 {
+            color: #e0e0e0;
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        h1 a {
+            color: #64b5f6;
+            text-decoration: none;
+            position: relative;
+            display: inline-block;
+        }
+        h1 a:hover::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0;
+            transform: translateY(-50%);
+            animation: sparkle 2s infinite;
+        }
+        h1 a:hover {
+            animation: shake 0.5s;
+        }
+        .form-control {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            color: #e0e0e0;
+            margin-bottom: 20px;
+        }
+        .form-control::placeholder {
+            color: #777;
+        }
+        .card {
+            margin-top: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            background: #1e1e1e;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #noResults, #error {
+            margin-top: 20px;
+            color: #ff6f61;
+        }
+        .card-img-top {
+            width: 120px; /* Aumenta o tamanho da imagem do perfil */
+            height: 120px; /* Aumenta o tamanho da imagem do perfil */
+            object-fit: cover;
+            border-radius: 50%;
+            margin-right: 20px;
+        }
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+            flex-grow: 1;
+        }
+        .card-title a {
+            font-size: 24px;
+            color: #64b5f6;
+            text-decoration: none;
+        }
+        .card-title a:hover {
+            text-decoration: underline;
+        }
+        .location, .email, .company, .blog, .twitter, .bio {
+            font-size: 16px;
+            color: #bbb;
+            margin-top: 5px;
+        }
+        .email a {
+            color: #bbb;
+            text-decoration: none;
+        }
+        .email a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .card {
+                flex-direction: column;
+                text-align: center;
+            }
+            .card-img-top {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <audio id="backgroundMusic" src="2Scratch - Bad!.mp3" loop></audio>
+
+    <div class="container">
+        <h1>Github Dating feito com ❤️ por <a href="https://www.linkedin.com/in/micasan/" target="_blank" style="color: #64b5f6; text-decoration: none;">Micael Santana</a></h1>
+        <input type="text" id="searchInput" class="form-control" placeholder="Digita ai..." aria-label="Search GitHub Users">
+        <div id="loadingSpinner" class="spinner" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+        <div id="resultsContainer" style="display: none;"></div>
+        <div id="noResults" class="alert alert-warning" style="display: none;">No results found.</div>
+        <div id="error" class="alert alert-danger" style="display: none;">Error fetching data.</div>
+    </div>
+
+    <script>
+    let debounceTimer;
+    let lastQuery = null;
+    let cache = {};
+
+    function debounce(func, delay) {
+        return function(...args) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => func.apply(this, args), delay);
+        };
+    }
+
+    async function fetchData(query) {
+        console.log("Fetching data for query:", query);
+        if (cache[query]) {
+            console.log("Returning cached data");
+            return cache[query];
+        }
+
+        const formattedQuery = query.split(' ').join('+');
+        const apiUrl = `https://api.github.com/search/users?q=${formattedQuery}+in:login&per_page=10`;
+        try {
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': 'token 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'  // Replace with your personal access token
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            cache[query] = data.items;
+            console.log("Data fetched and cached");
+            return data.items;
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            document.getElementById('error').style.display = 'block';
+            return [];
+        }
+    }
+
+    async function fetchUserDetails(username) {
+        const apiUrl = `https://api.github.com/users/${username}`;
+        try {
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': 'token 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'  // Replace with your personal access token
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching user details:', error);
+            document.getElementById('error').style.display = 'block';
+            return null;
+        }
+    }
+
+    function displayResults(users) {
+        const container = document.getElementById('resultsContainer');
+        container.innerHTML = '';
+        document.getElementById('noResults').style.display = users.length === 0 && document.getElementById('searchInput').value.trim() !== '' ? 'block' : 'none';
+
+        users.forEach(async user => {
+            const userDetails = await fetchUserDetails(user.login);
+            if (!userDetails) return;
+
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const image = document.createElement('img');
+            image.className = 'card-img-top';
+            image.src = userDetails.avatar_url;
+            image.alt = `Profile image of ${userDetails.login}`;
+
+            const body = document.createElement('div');
+            body.className = 'card-body';
+
+            const title = document.createElement('h5');
+            title.className = 'card-title';
+            
+            const usernameLink = document.createElement('a');
+            usernameLink.href = userDetails.html_url;
+            usernameLink.textContent = userDetails.login;
+            usernameLink.target = '_blank';
+            
+            title.appendChild(usernameLink);
+
+            const location = document.createElement('div');
+            location.className = 'location';
+            location.textContent = userDetails.location ? `Localização: ${userDetails.location}` : 'Localização não disponível';
+
+            const email = document.createElement('div');
+            email.className = 'email';
+            email.innerHTML = userDetails.email ? `Email: <a href="mailto:${userDetails.email}">${userDetails.email}</a>` : 'Email não disponível';
+
+            const company = document.createElement('div');
+            company.className = 'company';
+            company.textContent = userDetails.company ? `Empresa: ${userDetails.company}` : 'Empresa não disponível';
+
+            const blog = document.createElement('div');
+            blog.className = 'blog';
+            blog.textContent = userDetails.blog ? `Blog: ${userDetails.blog}` : 'Blog não disponível';
+
+            const twitter = document.createElement('div');
+            twitter.className = 'twitter';
+            twitter.textContent = userDetails.twitter_username ? `Twitter: @${userDetails.twitter_username}` : 'Twitter não disponível';
+
+            const bio = document.createElement('div');
+            bio.className = 'bio';
+            bio.textContent = userDetails.bio ? `Bio: ${userDetails.bio}` : 'Bio não disponível';
+
+            body.appendChild(title);
+            body.appendChild(location);
+            body.appendChild(email);
+            body.appendChild(company);
+            body.appendChild(blog);
+            body.appendChild(twitter);
+            body.appendChild(bio);
+            card.appendChild(image);
+            card.appendChild(body);
+            container.appendChild(card);
+        });
+
+        container.style.display = 'block';
+    }
+
+    async function handleSearch() {
+        const query = document.getElementById('searchInput').value.trim();
+        if (query.length < 3) {
+            document.getElementById('resultsContainer').innerHTML = '';
+            document.getElementById('noResults').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'none';
+            return;
+        }
+        if (!lastQuery || query !== lastQuery) {
+            lastQuery = query;
+            document.getElementById('loadingSpinner').style.display = 'flex';
+            document.getElementById('error').style.display = 'none';
+
+            const users = await fetchData(query);
+            displayResults(users);
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+    }
+
+    document.getElementById('searchInput').addEventListener('input', debounce(handleSearch, 300));
+
+    document.addEventListener('click', function() {
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        backgroundMusic.volume = 0.5;
+        backgroundMusic.play();
+    });
+    </script>
+</body>
+</html>
