@@ -170,45 +170,19 @@
             return cache[query];
         }
 
-        const formattedQuery = query.split(' ').join('+');
-        const apiUrl = `https://api.github.com/search/users?q=${formattedQuery}+in:login&per_page=10`;
         try {
-            const response = await fetch(apiUrl, {
-                headers: {
-                    'Authorization': 'token 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'  // Replace with your personal access token
-                }
-            });
+            const response = await fetch('data.json');
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            cache[query] = data.items;
+            cache[query] = data;
             console.log("Data fetched and cached");
-            return data.items;
+            return data;
         } catch (error) {
             console.error('Error fetching data:', error);
             document.getElementById('error').style.display = 'block';
             return [];
-        }
-    }
-
-    async function fetchUserDetails(username) {
-        const apiUrl = `https://api.github.com/users/${username}`;
-        try {
-            const response = await fetch(apiUrl, {
-                headers: {
-                    'Authorization': 'token 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'  // Replace with your personal access token
-                }
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error('Error fetching user details:', error);
-            document.getElementById('error').style.display = 'block';
-            return null;
         }
     }
 
@@ -217,17 +191,14 @@
         container.innerHTML = '';
         document.getElementById('noResults').style.display = users.length === 0 && document.getElementById('searchInput').value.trim() !== '' ? 'block' : 'none';
 
-        users.forEach(async user => {
-            const userDetails = await fetchUserDetails(user.login);
-            if (!userDetails) return;
-
+        users.forEach(user => {
             const card = document.createElement('div');
             card.className = 'card';
 
             const image = document.createElement('img');
             image.className = 'card-img-top';
-            image.src = userDetails.avatar_url;
-            image.alt = `Profile image of ${userDetails.login}`;
+            image.src = user.avatar_url;
+            image.alt = `Profile image of ${user.login}`;
 
             const body = document.createElement('div');
             body.className = 'card-body';
@@ -236,35 +207,35 @@
             title.className = 'card-title';
             
             const usernameLink = document.createElement('a');
-            usernameLink.href = userDetails.html_url;
-            usernameLink.textContent = userDetails.login;
+            usernameLink.href = user.html_url;
+            usernameLink.textContent = user.login;
             usernameLink.target = '_blank';
             
             title.appendChild(usernameLink);
 
             const location = document.createElement('div');
             location.className = 'location';
-            location.textContent = userDetails.location ? `Localização: ${userDetails.location}` : 'Localização não disponível';
+            location.textContent = user.location ? `Localização: ${user.location}` : 'Localização não disponível';
 
             const email = document.createElement('div');
             email.className = 'email';
-            email.innerHTML = userDetails.email ? `Email: <a href="mailto:${userDetails.email}">${userDetails.email}</a>` : 'Email não disponível';
+            email.innerHTML = user.email ? `Email: <a href="mailto:${user.email}">${user.email}</a>` : 'Email não disponível';
 
             const company = document.createElement('div');
             company.className = 'company';
-            company.textContent = userDetails.company ? `Empresa: ${userDetails.company}` : 'Empresa não disponível';
+            company.textContent = user.company ? `Empresa: ${user.company}` : 'Empresa não disponível';
 
             const blog = document.createElement('div');
             blog.className = 'blog';
-            blog.textContent = userDetails.blog ? `Blog: ${userDetails.blog}` : 'Blog não disponível';
+            blog.textContent = user.blog ? `Blog: ${user.blog}` : 'Blog não disponível';
 
             const twitter = document.createElement('div');
             twitter.className = 'twitter';
-            twitter.textContent = userDetails.twitter_username ? `Twitter: @${userDetails.twitter_username}` : 'Twitter não disponível';
+            twitter.textContent = user.twitter_username ? `Twitter: @${user.twitter_username}` : 'Twitter não disponível';
 
             const bio = document.createElement('div');
             bio.className = 'bio';
-            bio.textContent = userDetails.bio ? `Bio: ${userDetails.bio}` : 'Bio não disponível';
+            bio.textContent = user.bio ? `Bio: ${user.bio}` : 'Bio não disponível';
 
             body.appendChild(title);
             body.appendChild(location);
